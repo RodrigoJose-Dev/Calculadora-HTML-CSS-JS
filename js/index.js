@@ -10,7 +10,6 @@ const currentOperandTextElement = document.querySelector(
     "[data-current-operand]"
 );
 
-//classe
 class Calculator {
     constructor(previousOperandTextElement, currentOperandTextElement) {
         this.previousOperandTextElement = previousOperandTextElement;
@@ -18,8 +17,69 @@ class Calculator {
         this.clear();
     }
 
+    //
+    // ***METODOS***
+    //
+
+    //adicionando numero
     appendNumber(number) {
+        if (this.currentOperand.includes(".") && number === ".") return; // -> evitando que o ponto seja adicionado mais de uma vez
+
         this.currentOperand = `${this.currentOperand}${number.toString()}`;
+    }
+
+    //escolher operacao matematica
+    chooseOperation(operation) {
+        if (this.currentOperand === "") return;
+
+        if (this.previousOperand !== "") {
+            this.calculate();
+        }
+
+        this.operation = operation;
+
+        this.previousOperand = this.currentOperand;
+        this.currentOperand = "";
+    }
+
+    //calcular
+    calculate() {
+        let result;
+
+        const previousOperandFloat = parseFloat(this.previousOperand);
+        const currentOperandFloat = parseFloat(this.currentOperand);
+
+        if (isNaN(previousOperandFloat) || isNaN(currentOperandFloat)) return;
+
+        //selecionar operacao
+        switch (this.operation) {
+            case "+":
+                result = previousOperandFloat + currentOperandFloat;
+                break;
+
+            case "-":
+                result = previousOperandFloat - currentOperandFloat;
+                break;
+
+            case "/":
+                result = previousOperandFloat / currentOperandFloat;
+                break;
+
+            case "*":
+                result = previousOperandFloat * currentOperandFloat;
+                break;
+
+            default:
+                return;
+        }
+
+        this.currentOperand = result;
+        this.operation = undefined;
+        this.previousOperand = "";
+    }
+
+    delete() {
+        this.currentOperand = this.currentOperand.toString().slice(0, -1);
     }
 
     //limpar operadores e operacoes
@@ -31,7 +91,9 @@ class Calculator {
 
     //atualiza os elementos na tela
     updateDisplay() {
-        this.previousOperandTextElement.innerText = this.previousOperand;
+        this.previousOperandTextElement.innerText = `${this.previousOperand} ${
+            this.operation || ""
+        }`;
         this.currentOperandTextElement.innerText = this.currentOperand;
     }
 }
@@ -41,7 +103,9 @@ const calculator = new Calculator(
     currentOperandTextElement
 );
 
-//guardando numero apos pressionar o button
+//
+//***ADICIONANDO METODO AOS BOTOES***
+//
 for (const numberButton of numberButtons) {
     numberButton.addEventListener("click", () => {
         calculator.appendNumber(numberButton.innerText);
@@ -49,7 +113,24 @@ for (const numberButton of numberButtons) {
     });
 }
 
+for (const operationButton of operationButtons) {
+    operationButton.addEventListener("click", () => {
+        calculator.chooseOperation(operationButton.innerText);
+        calculator.updateDisplay();
+    });
+}
+
 allClearButton.addEventListener("click", () => {
     calculator.clear();
+    calculator.updateDisplay();
+});
+
+equalsButton.addEventListener("click", () => {
+    calculator.calculate();
+    calculator.updateDisplay();
+});
+
+deleteButton.addEventListener("click", () => {
+    calculator.delete();
     calculator.updateDisplay();
 });
